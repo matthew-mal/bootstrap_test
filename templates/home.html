@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+
 {% block title %}Home{% endblock title %}
 {% block content %}
     {% if user.is_authenticated %}
@@ -6,13 +9,6 @@
         <br>
         <br>
 
-        <form action="{% url 'logout' %}" method="post">
-            {% csrf_token %}
-            <button type="submit">Log Out</button>
-        </form>
-    {% else %}
-        <p>You are not logged in</p>
-        <a href="{% url 'login' %}">Log In</a> |
-        <a href="{% url 'signup' %}">Sign Up</a>
+
     {% endif %}
 {% endblock content %}
