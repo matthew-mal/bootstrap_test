@@ -1,7 +1,30 @@
-from django.urls import reverse_lazy
-from .models import Article
+from django.urls import reverse_lazy, reverse
+from django.views import View
+from django.views.generic.detail import SingleObjectMixin
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import ListView, CreateView, DetailView, DeleteView, UpdateView
+from django.views.generic import ListView, FormView, CreateView, DetailView, DeleteView, UpdateView
+
+from .models import Article
+from .forms import CommentForm
+
+
+class CommentPost(SingleObjectMixin, FormView):
+    model = Article
+    form_class = CommentForm
+    template_name = "article_detail.html"
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        comment = form.save(commit=False)
+        comment.article = self.object
+        comment.save()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse("article_list")
 
 
 class ArticleListView(LoginRequiredMixin, ListView):
@@ -12,6 +35,21 @@ class ArticleListView(LoginRequiredMixin, ListView):
 class ArticleDetailView(LoginRequiredMixin, DetailView):
     model = Article
     template_name = 'article_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = CommentForm()
+        return context
+
+    def get(self, request, *args, **kwargs):
+        view = CommentGet.as_view()
+
+        return view(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        view = CommentPost.as_view()
+
+        return view(request, *args, **kwargs)
 
 
 class ArticleDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
@@ -51,3 +89,11 @@ class ArticleCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
+class CommentGet(DeleteView):
+    model = Article
+    template_name = 'article_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = CommentForm()
+        return context
