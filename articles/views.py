@@ -8,7 +8,7 @@ from .models import Article
 from .forms import CommentForm
 
 
-class CommentPost(LoginRequiredMixin, SingleObjectMixin, FormView):
+class CommentPost(SingleObjectMixin, FormView):
     """
     View class for posting comments on an article.
     Requires user authentication.
@@ -25,7 +25,6 @@ class CommentPost(LoginRequiredMixin, SingleObjectMixin, FormView):
         comment = form.save(commit=False)
         comment.article = self.object
         comment.save()
-        form.instance.author = self.request.user
         return super().form_valid(form)
 
     def get_success_url(self):
